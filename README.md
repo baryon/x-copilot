@@ -4,7 +4,7 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 
 [English](#english) | [中文](#中文)
 
-[![Demo Video](https://img.youtube.com/vi/F5G4D01L98s/maxresdefault.jpg)](https://youtu.be/F5G4D01L98s)
+[![Demo Video](https://img.youtube.com/vi/F5G4D01L98s/hqdefault.jpg)](https://youtu.be/F5G4D01L98s)
 
 ---
 
