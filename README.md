@@ -37,8 +37,8 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 ### Build from source
 
 ```bash
-git clone git@github.com:baryon/x-bookmark-sync.git
-cd x-bookmark-sync
+git clone git@github.com:baryon/x-copilot.git
+cd x-copilot
 pnpm install
 pnpm run build
 ```
@@ -129,8 +129,8 @@ MIT
 ### 安装
 
 ```bash
-git clone git@github.com:baryon/x-bookmark-sync.git
-cd x-bookmark-sync
+git clone git@github.com:baryon/x-copilot.git
+cd x-copilot
 pnpm install
 pnpm run build
 ```

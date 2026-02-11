@@ -1,0 +1,7 @@
+.DS_Store
+*.crx
+*.pem
+*.zip
+node_modules/
+dist/
+.claude/settings.local.json
