@@ -21,6 +21,7 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 
 ### AI-Powered Analysis
 - **Tweet summarization** — Click the ✨ button on any tweet to get a structured summary with TLDR, key points, and fact-check
+- **Streaming output** — AI response streams in real-time with live markdown rendering, no more waiting for the full result
 - **Smart replies** — AI generates a suggested reply matching the tweet's language and your chosen style
 - **Reply styles** — Professional discussion, friendly interaction, or concise agreement
 - **Regenerate** — Switch styles or add custom instructions to regenerate just the reply without re-summarizing
@@ -64,9 +65,9 @@ Click the extension icon → **Settings** tab → under "AI 总结配置":
 
 ### 2. Summarize a tweet
 
-On any X page, click the ✨ icon in a tweet's action bar. A side panel will open with:
-- **Summary** — TLDR, key points, fact-check with credibility score
-- **Suggested reply** — editable, with copy-to-clipboard button
+On any X page, click the ✨ icon in a tweet's action bar. A side panel will open and stream the AI analysis in real-time:
+- **Summary** — TLDR, key points, fact-check with credibility score (streams as it generates)
+- **Suggested reply** — editable, with copy-to-clipboard button (appears when streaming completes)
 - **Regenerate** — pick a different style or add instructions to regenerate the reply
 - **Save Markdown** — export everything as a `.md` file
 
@@ -122,6 +123,7 @@ MIT
 
 **AI 智能分析**
 - 点击推文上的 ✨ 按钮，获取结构化总结（TLDR + 关键点 + 事实核查）
+- 流式输出：AI 分析结果实时渲染，无需等待完整响应
 - 自动生成建议回复，匹配原推语言，支持三种风格
 - 可输入自定义指令重新生成回复，不重复调用总结
 - 一键导出 Markdown
@@ -142,6 +144,6 @@ pnpm run build
 ### 使用
 
 1. **配置 AI** — 扩展设置中选择 AI 接口（OpenAI / Claude），填入 API Key，选择回复风格
-2. **总结推文** — 在 X 页面点击推文操作栏的 ✨ 按钮，右侧面板显示总结和建议回复
+2. **总结推文** — 在 X 页面点击推文操作栏的 ✨ 按钮，右侧面板实时流式显示总结，完成后展示建议回复
 3. **同步** — 点击扩展图标 → 同步 → 选择「书签」或「喜欢」→ 开始同步
 4. **搜索** — 输入关键词搜索，或查看全部同步推文
