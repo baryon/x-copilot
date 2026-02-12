@@ -1,7 +1,7 @@
 import { STORAGE_KEY_API_KEY } from '@shared/constants';
 import { sendMessage } from '@shared/messaging';
 import { extractSingleTweet } from './extractor/tweet-extractor';
-import { showLoading, showError } from './summary-overlay';
+import { showStreaming, showError } from './summary-overlay';
 
 const BUTTON_ATTR = 'data-xbs-summarize';
 
@@ -62,7 +62,7 @@ async function handleSummarizeClick(article: Element): Promise<void> {
   const tweet = extractSingleTweet(article, 'bookmarks');
   if (!tweet) return;
 
-  showLoading();
+  showStreaming();
 
   try {
     const res = await sendMessage({

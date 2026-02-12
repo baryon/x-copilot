@@ -134,6 +134,12 @@ export interface RegenerateReplyMessage {
   userPrompt?: string;
 }
 
+// Background → Content: stream chunk
+export interface SummarizeStreamChunkMessage {
+  type: 'SUMMARIZE_STREAM_CHUNK';
+  chunk: string;
+}
+
 // Content → Background: export markdown
 export interface ExportMarkdownMessage {
   type: 'EXPORT_MARKDOWN';
@@ -167,6 +173,7 @@ export type ExtensionMessage =
   | StopExtractionMessage
   | SummarizeTweetMessage
   | SummarizeResultMessage
+  | SummarizeStreamChunkMessage
   | RegenerateReplyMessage
   | ExportMarkdownMessage;
 

@@ -50,7 +50,7 @@ interface SummarizeResult {
   reply: string;
 }
 
-export async function summarizeTweet(tweetText: string, author: string, userPrompt?: string): Promise<SummarizeResult> {
+export async function summarizeTweet(tweetText: string, author: string, userPrompt?: string, onChunk?: (text: string) => void): Promise<SummarizeResult> {
   const cfg = await loadLLMConfig();
 
   const prompt: LLMPrompt = {
@@ -73,9 +73,23 @@ Provide a thorough, high-value summary:
 - Skip this section entirely if the content is not instructional.
 
 --- FACT CHECK ---
-- Identify key factual claims.
-- For each claim, note whether it is **verifiable**, **partially verifiable**, **opinion**, or **unverifiable**.
-- End with: Credibility: X/10 — one-sentence justification.
+
+Use your knowledge to verify the accuracy of this tweet. Many tweets on X contain misinformation, exaggeration, or fabricated claims. Be skeptical by default.
+
+1. **Extract claims**: List every factual claim (not opinions) made in the tweet.
+2. **Verify each claim**: For each claim, state one of:
+   - ✅ **Accurate** — consistent with well-established facts; briefly cite the basis.
+   - ⚠️ **Misleading** — contains a kernel of truth but is distorted, out of context, cherry-picked, or exaggerated; explain what's wrong.
+   - ❌ **Inaccurate** — contradicts well-established facts; state what is actually true.
+   - ❓ **Unverifiable** — cannot be confirmed or denied with available knowledge.
+3. **Red flags**: Note if any of these misinformation patterns are present:
+   - Sensationalist or emotionally manipulative language
+   - Statistics without sources or with misleading framing
+   - Claims attributed to unnamed "experts" or "studies"
+   - Screenshots or quotes taken out of context
+   - Conspiracy-theory reasoning (unfalsifiable, connecting unrelated events)
+   - Impersonating or misrepresenting an authority figure
+4. **Credibility: X/10** — overall assessment with one-sentence justification. Be harsh: a tweet full of unverifiable or misleading claims should score ≤ 4.
 
 ## Part 2 — Suggested Reply
 
@@ -99,7 +113,7 @@ Use exactly this structure:
     user: `Tweet by ${author}:\n\n${tweetText}${userPrompt ? `\n\n--- User instructions ---\n${userPrompt}` : ''}`,
   };
 
-  const result = await callLLM(cfg.provider, cfg.baseUrl, cfg.apiKey, cfg.model, prompt, 2000);
+  const result = await callLLM(cfg.provider, cfg.baseUrl, cfg.apiKey, cfg.model, prompt, 3000, onChunk);
 
   const summaryMatch = result.match(/## 总结\s*\n([\s\S]*?)(?=\n## 建议回复|$)/);
   const replyMatch = result.match(/## 建议回复\s*\n([\s\S]*?)$/);

@@ -5,6 +5,7 @@ import { sendMessage } from '@shared/messaging';
 const OVERLAY_ID = 'xbs-summary-overlay';
 
 let currentData: { tweetText: string; author: string; tweetUrl: string; summary: string; reply: string } | null = null;
+let streamBuffer = '';
 
 /** All child elements inside overlay need explicit color-scheme to fight X dark mode */
 const RESET_CSS = 'color-scheme:light;color:#0f1419;background-color:#fff;';
@@ -80,7 +81,36 @@ export function showLoading(): void {
   overlay.querySelector('#xbs-overlay-close')?.addEventListener('click', hideOverlay);
 }
 
+export function showStreaming(): void {
+  streamBuffer = '';
+  const overlay = getOrCreateOverlay();
+  overlay.style.display = 'block';
+  overlay.innerHTML = `
+    ${headerHtml('AI 总结')}
+    <div style="padding:20px;height:calc(100vh - 57px);overflow-y:auto;box-sizing:border-box;${RESET_CSS}">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">总结</div>
+        <div id="xbs-stream-content" style="font-size:14px;color:#0f1419;line-height:1.6;padding:12px 14px;background:#f7f9f9;border-radius:10px;min-height:40px;">
+          <span style="display:inline-block;width:2px;height:14px;background:#1d9bf0;animation:xbs-blink 1s step-end infinite;vertical-align:text-bottom;"></span>
+        </div>
+      </div>
+    </div>
+    <style>@keyframes xbs-blink { 50% { opacity: 0; } }</style>
+  `;
+  overlay.querySelector('#xbs-overlay-close')?.addEventListener('click', hideOverlay);
+}
+
+export function appendStreamChunk(chunk: string): void {
+  streamBuffer += chunk;
+  const el = document.getElementById('xbs-stream-content');
+  if (el) {
+    el.innerHTML = renderMarkdown(streamBuffer);
+    el.scrollTop = el.scrollHeight;
+  }
+}
+
 export function updateOverlay(msg: SummarizeResultMessage): void {
+  streamBuffer = '';
   const overlay = getOrCreateOverlay();
   overlay.style.display = 'block';
 

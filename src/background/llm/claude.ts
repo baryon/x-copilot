@@ -12,7 +12,7 @@ function normalizeBaseUrl(baseUrl: string): string {
  * Read Anthropic SSE stream and concatenate text content.
  * Event format: content_block_delta with delta.type "text_delta"
  */
-async function readSSEStream(res: Response): Promise<string> {
+async function readSSEStream(res: Response, onChunk?: (text: string) => void): Promise<string> {
   const reader = res.body?.getReader();
   if (!reader) throw new Error('Response body is not readable');
 
@@ -37,6 +37,7 @@ async function readSSEStream(res: Response): Promise<string> {
         const chunk = JSON.parse(data);
         if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
           result += chunk.delta.text;
+          onChunk?.(chunk.delta.text);
         }
       } catch {
         // skip malformed chunks
@@ -53,6 +54,7 @@ export async function callClaude(
   model: string,
   prompt: LLMPrompt,
   maxTokens: number,
+  onChunk?: (text: string) => void,
 ): Promise<string> {
   const normalized = normalizeBaseUrl(baseUrl);
   const url = normalized + '/v1/messages';
@@ -85,5 +87,5 @@ export async function callClaude(
     throw new Error(msg || 'Claude API error: ' + res.status);
   }
 
-  return readSSEStream(res);
+  return readSSEStream(res, onChunk);
 }

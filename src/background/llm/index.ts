@@ -10,15 +10,16 @@ export async function callLLM(
   model: string,
   prompt: LLMPrompt,
   maxTokens: number,
+  onChunk?: (text: string) => void,
 ): Promise<string> {
   const resolvedUrl = baseUrl || DEFAULT_BASE_URLS[provider];
   const resolvedModel = model || DEFAULT_MODELS[provider];
 
   switch (provider) {
     case 'openai':
-      return callOpenAI(resolvedUrl, apiKey, resolvedModel, prompt, maxTokens);
+      return callOpenAI(resolvedUrl, apiKey, resolvedModel, prompt, maxTokens, onChunk);
     case 'claude':
-      return callClaude(resolvedUrl, apiKey, resolvedModel, prompt, maxTokens);
+      return callClaude(resolvedUrl, apiKey, resolvedModel, prompt, maxTokens, onChunk);
     default:
       throw new Error('不支持的接口: ' + provider);
   }

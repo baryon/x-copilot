@@ -1,7 +1,7 @@
 import type { ExtensionMessage, MessageResponse, SummarizeResultMessage } from '@shared/types';
 import { startExtraction, stopExtraction } from './extractor/scroll-controller';
 import { initSummarizeButtons } from './summarize-button';
-import { updateOverlay } from './summary-overlay';
+import { updateOverlay, appendStreamChunk } from './summary-overlay';
 
 chrome.runtime.onMessage.addListener(
   (message: ExtensionMessage, _sender: chrome.runtime.MessageSender, sendResponse: (r: MessageResponse) => void) => {
@@ -13,6 +13,11 @@ chrome.runtime.onMessage.addListener(
 
       case 'STOP_EXTRACTION':
         stopExtraction();
+        sendResponse({ success: true });
+        break;
+
+      case 'SUMMARIZE_STREAM_CHUNK':
+        appendStreamChunk(message.chunk);
         sendResponse({ success: true });
         break;
 

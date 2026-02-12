@@ -58,7 +58,10 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
 
     case 'SUMMARIZE_TWEET': {
       const tabId = sender.tab?.id;
-      summarizeTweet(message.tweetText, message.author, message.userPrompt)
+      const onChunk = tabId
+        ? (chunk: string) => { sendTabMessage(tabId, { type: 'SUMMARIZE_STREAM_CHUNK', chunk }); }
+        : undefined;
+      summarizeTweet(message.tweetText, message.author, message.userPrompt, onChunk)
         .then((result) => {
           if (tabId) {
             sendTabMessage(tabId, {

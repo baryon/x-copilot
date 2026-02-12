@@ -23,7 +23,7 @@ function usesResponsesApi(model: string): boolean {
  * Read an SSE stream and concatenate text content.
  * Handles both Chat Completions (delta.content) and Responses API (output_text.text) formats.
  */
-async function readSSEStream(res: Response, responsesApi: boolean): Promise<string> {
+async function readSSEStream(res: Response, responsesApi: boolean, onChunk?: (text: string) => void): Promise<string> {
   const reader = res.body?.getReader();
   if (!reader) throw new Error('Response body is not readable');
 
@@ -50,11 +50,15 @@ async function readSSEStream(res: Response, responsesApi: boolean): Promise<stri
           // Responses API: type "response.output_text.delta" with { delta: "text" }
           if (chunk.type === 'response.output_text.delta' && chunk.delta) {
             result += chunk.delta;
+            onChunk?.(chunk.delta);
           }
         } else {
           // Chat Completions: choices[0].delta.content
           const delta = chunk.choices?.[0]?.delta?.content;
-          if (delta) result += delta;
+          if (delta) {
+            result += delta;
+            onChunk?.(delta);
+          }
         }
       } catch {
         // skip malformed chunks
@@ -82,6 +86,7 @@ export async function callOpenAI(
   model: string,
   prompt: LLMPrompt,
   maxTokens: number,
+  onChunk?: (text: string) => void,
 ): Promise<string> {
   const normalized = normalizeBaseUrl(baseUrl);
   const responsesApi = usesResponsesApi(model);
@@ -133,5 +138,5 @@ export async function callOpenAI(
     handleError(text, res.status);
   }
 
-  return readSSEStream(res, responsesApi);
+  return readSSEStream(res, responsesApi, onChunk);
 }
