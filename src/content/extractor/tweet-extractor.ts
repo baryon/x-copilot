@@ -50,7 +50,20 @@ export function extractSingleTweet(article: Element, source: SyncSource): Synced
 
   // Tweet text
   const tweetTextEl = article.querySelector('[data-testid="tweetText"]') as HTMLElement | null;
-  const text = tweetTextEl?.innerText ?? '';
+  let text = tweetTextEl?.innerText ?? '';
+  let hasArticle = false;
+
+  // Fallback: X Article (long-form) content
+  if (!text) {
+    const articleTitle = article.querySelector('[data-testid="twitter-article-title"]') as HTMLElement | null;
+    const articleBody = article.querySelector('[data-testid="longformRichTextComponent"]') as HTMLElement | null;
+    if (articleTitle || articleBody) {
+      hasArticle = true;
+      const titleText = articleTitle?.innerText?.trim() ?? '';
+      const bodyText = articleBody?.innerText?.trim() ?? '';
+      text = [titleText, bodyText].filter(Boolean).join('\n\n');
+    }
+  }
 
   // Quoted tweet
   const quotedText = quotedTweet
@@ -67,7 +80,6 @@ export function extractSingleTweet(article: Element, source: SyncSource): Synced
   let cardDescription = '';
   let cardUrl = '';
   let cardImageUrl = '';
-  let hasArticle = false;
 
   // 1. X Article format (data-testid="article-cover-image")
   const articleCoverEl = article.querySelector('[data-testid="article-cover-image"]') as HTMLElement | null;

@@ -4,8 +4,9 @@ import { extractSingleTweet } from './extractor/tweet-extractor';
 import { showStreaming, showError } from './summary-overlay';
 
 const BUTTON_ATTR = 'data-xbs-summarize';
+const TOPBAR_ATTR = 'data-xbs-summarize-topbar';
 
-const SPARKLE_SVG = `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+const SPARKLE_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/>
 </svg>`;
 
@@ -41,10 +42,14 @@ function createSummarizeButton(): HTMLButtonElement {
   return btn;
 }
 
+/**
+ * Inject our button into the tweet/article bottom action bar.
+ * Wraps in a <div> to match native action‐item flex structure so vertical
+ * alignment stays consistent with reply / retweet / like / etc.
+ */
 function injectButton(article: Element): void {
   if (article.querySelector(`[${BUTTON_ATTR}]`)) return;
 
-  // Find the action bar (the row with like, retweet, share buttons)
   const actionBar = article.querySelector('[role="group"]');
   if (!actionBar) return;
 
@@ -55,7 +60,69 @@ function injectButton(article: Element): void {
     handleSummarizeClick(article);
   });
 
-  actionBar.appendChild(btn);
+  // Wrap in a flex container matching native action‐item wrappers
+  const wrapper = document.createElement('div');
+  Object.assign(wrapper.style, {
+    display: 'flex',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+  });
+  wrapper.appendChild(btn);
+  actionBar.appendChild(wrapper);
+}
+
+/**
+ * Inject our button into the sticky top‐bar of an X Article page.
+ * The top bar lives outside <article> and contains back / share / bookmark / more.
+ */
+function injectIntoArticleTopBar(): void {
+  // Only on article detail pages
+  const isArticlePage = !!document.querySelector(
+    '[data-testid="twitterArticleReadView"], [data-testid="longformRichTextComponent"], [data-testid="twitter-article-title"]',
+  );
+  if (!isArticlePage) return;
+
+  // Already injected
+  if (document.querySelector(`[${TOPBAR_ATTR}]`)) return;
+
+  // Find the back button – present on all X detail pages
+  const backBtn =
+    document.querySelector('[data-testid="app-bar-back"]') ??
+    document.querySelector('[data-testid="app-bar-close"]');
+  if (!backBtn) return;
+
+  // Walk up from the back button to find the header row that also contains
+  // the right‐side action buttons (share / bookmark / more).
+  let headerRow: Element | null = backBtn.parentElement;
+  for (let i = 0; i < 5 && headerRow; i++) {
+    const btns = headerRow.querySelectorAll('button');
+    // The header row has at least the back button + 2–3 action buttons
+    if (btns.length >= 3) break;
+    headerRow = headerRow.parentElement;
+  }
+  if (!headerRow) return;
+
+  // Collect all buttons that are NOT the back button
+  const allBtns = Array.from(headerRow.querySelectorAll('button'));
+  const actionBtns = allBtns.filter((b) => b !== backBtn && !backBtn.contains(b));
+  if (actionBtns.length === 0) return;
+
+  const btn = createSummarizeButton();
+  btn.setAttribute(TOPBAR_ATTR, 'true');
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const article = document.querySelector('article[data-testid="tweet"]');
+    if (article) handleSummarizeClick(article);
+  });
+
+  // Insert before the first action button (puts it left of share/bookmark/more)
+  const firstActionBtn = actionBtns[0];
+  const insertTarget = firstActionBtn.closest('[class]')?.parentElement ?? firstActionBtn.parentElement;
+  if (insertTarget) {
+    insertTarget.insertBefore(btn, firstActionBtn.closest('[class]') ?? firstActionBtn);
+  }
 }
 
 async function handleSummarizeClick(article: Element): Promise<void> {
@@ -80,10 +147,14 @@ async function handleSummarizeClick(article: Element): Promise<void> {
 }
 
 function scanAndInject(): void {
+  // Bottom action bars inside tweet articles
   const articles = document.querySelectorAll('article[data-testid="tweet"]');
   for (const article of articles) {
     injectButton(article);
   }
+
+  // Top bar on article detail pages
+  injectIntoArticleTopBar();
 }
 
 export async function initSummarizeButtons(): Promise<void> {

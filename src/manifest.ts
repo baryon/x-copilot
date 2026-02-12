@@ -3,7 +3,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
   manifest_version: 3,
   name: 'X Copilot',
-  version: '4.0.0',
+  version: '4.1.0',
   description: 'Sync bookmarks & likes, AI-powered tweet summarization and smart replies for X (Twitter)',
   permissions: ['storage', 'unlimitedStorage', 'tabs', 'downloads'],
   host_permissions: [
