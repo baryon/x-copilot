@@ -30,12 +30,24 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 
 ## Installation
 
-### Prerequisites
+### Option 1: Install from GitHub Release (Recommended)
+
+1. Go to the [Releases page](https://github.com/baryon/x-copilot/releases)
+2. Download the latest `x-copilot-v*.*.*.zip` file
+3. Unzip the downloaded file
+4. Open Chrome and go to `chrome://extensions/`
+5. Enable **Developer mode** (top-right toggle)
+6. Click **Load unpacked** and select the unzipped folder
+7. Pin the extension icon in the toolbar
+
+### Option 2: Build from Source
+
+#### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18+)
 - [pnpm](https://pnpm.io/)
 
-### Build from source
+#### Build steps
 
 ```bash
 git clone git@github.com:baryon/x-copilot.git
@@ -44,7 +56,7 @@ pnpm install
 pnpm run build
 ```
 
-### Load in Chrome
+#### Load in Chrome
 
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable **Developer mode** (top-right toggle)
@@ -130,6 +142,18 @@ MIT
 
 ### 安装
 
+#### 方式一:下载预构建版本(推荐)
+
+1. 访问 [Releases 页面](https://github.com/baryon/x-copilot/releases)
+2. 下载最新的 `x-copilot-v*.*.*.zip` 文件
+3. 解压下载的文件
+4. 打开 Chrome，进入 `chrome://extensions/`
+5. 开启右上角 **开发者模式**
+6. 点击 **加载已解压的扩展程序**，选择解压后的文件夹
+7. 将扩展图标固定到工具栏
+
+#### 方式二:从源码构建
+
 ```bash
 git clone git@github.com:baryon/x-copilot.git
 cd x-copilot
@@ -140,6 +164,7 @@ pnpm run build
 1. 打开 Chrome，进入 `chrome://extensions/`
 2. 开启右上角 **开发者模式**
 3. 点击 **加载已解压的扩展程序**，选择 `dist/` 文件夹
+4. 将扩展图标固定到工具栏
 
 ### 使用
 
