@@ -58,38 +58,23 @@ export async function summarizeTweet(tweetText: string, author: string, userProm
 
 ## Part 1 — Summary
 
-Provide a thorough, high-value summary:
+Provide a concise, high-value summary:
 
 **TLDR** — one sentence capturing the core thesis.
 
 **Key Points**
-- Extract 3-6 of the most valuable insights, claims, actionable takeaways, or data points.
-- For substantial content (threads, long tweets with quotes), extract more points with specifics.
-- Each point should be self-contained and useful even without reading the original.
-- Use **bold** for key terms, names, numbers, and takeaways.
+- Extract 3-5 of the most valuable insights, claims, or actionable takeaways.
+- Each point should be concise and self-contained.
+- Use **bold** for key terms and numbers.
 
 **Process / Steps** (only if the tweet describes a tutorial, method, or workflow)
-- List numbered steps with specifics (tools, parameters, etc.).
+- List numbered steps concisely.
 - Skip this section entirely if the content is not instructional.
 
---- FACT CHECK ---
-
-Use your knowledge to verify the accuracy of this tweet. Many tweets on X contain misinformation, exaggeration, or fabricated claims. Be skeptical by default.
-
-1. **Extract claims**: List every factual claim (not opinions) made in the tweet.
-2. **Verify each claim**: For each claim, state one of:
-   - ✅ **Accurate** — consistent with well-established facts; briefly cite the basis.
-   - ⚠️ **Misleading** — contains a kernel of truth but is distorted, out of context, cherry-picked, or exaggerated; explain what's wrong.
-   - ❌ **Inaccurate** — contradicts well-established facts; state what is actually true.
-   - ❓ **Unverifiable** — cannot be confirmed or denied with available knowledge.
-3. **Red flags**: Note if any of these misinformation patterns are present:
-   - Sensationalist or emotionally manipulative language
-   - Statistics without sources or with misleading framing
-   - Claims attributed to unnamed "experts" or "studies"
-   - Screenshots or quotes taken out of context
-   - Conspiracy-theory reasoning (unfalsifiable, connecting unrelated events)
-   - Impersonating or misrepresenting an authority figure
-4. **Credibility: X/10** — overall assessment with one-sentence justification. Be harsh: a tweet full of unverifiable or misleading claims should score ≤ 4.
+**Fact Check**
+- Verify 1-2 main claims only (skip if tweet is purely opinion-based).
+- Use: ✅ Accurate / ⚠️ Misleading / ❌ Inaccurate / ❓ Unverifiable
+- Add **Credibility: X/10** if factual claims are significant. Skip for opinion tweets.
 
 ## Part 2 — Suggested Reply
 
