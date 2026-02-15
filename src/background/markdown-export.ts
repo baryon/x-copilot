@@ -1,3 +1,29 @@
+/**
+ * Generate a URL-friendly slug from text
+ * Takes first 5-6 words and converts to lowercase with hyphens
+ */
+function slugify(text: string, maxLength: number = 40): string {
+  // Remove URLs
+  const cleaned = text.replace(/https?:\/\/\S+/g, '');
+
+  // Split into words and take first few
+  const words = cleaned
+    .trim()
+    .split(/\s+/)
+    .slice(0, 6)
+    .join(' ');
+
+  // Convert to slug
+  let slug = words
+    .toLowerCase()
+    .replace(/[^\u4e00-\u9fa5a-z0-9]+/g, '-') // Keep Chinese, English, numbers
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .slice(0, maxLength);
+
+  // Ensure doesn't end with hyphen
+  return slug.replace(/-+$/, '') || 'tweet';
+}
+
 export function exportMarkdown(
   tweetText: string,
   author: string,
@@ -29,7 +55,11 @@ ${reply}
   // Service worker has no DOM, so use data URL instead of Blob + createObjectURL
   const base64 = btoa(unescape(encodeURIComponent(content)));
   const url = 'data:text/markdown;base64,' + base64;
-  const filename = `tweet-summary-${author.replace(/[^a-zA-Z0-9_]/g, '')}-${dateStr}.md`;
+
+  // Generate filename: YYYY-MM-DD-author-text-slug.md
+  const authorSlug = author.replace(/[@\s]/g, '').replace(/[^a-zA-Z0-9_\u4e00-\u9fa5]/g, '-').slice(0, 20);
+  const textSlug = slugify(tweetText);
+  const filename = `${dateStr}-${authorSlug}-${textSlug}.md`;
 
   chrome.downloads.download({
     url,

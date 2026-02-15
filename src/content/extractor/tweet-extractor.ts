@@ -1,18 +1,18 @@
 import type { SyncedTweet, SyncSource } from '@shared/types';
 
-export function extractTweetsFromPage(source: SyncSource): SyncedTweet[] {
+export async function extractTweetsFromPage(source: SyncSource): Promise<SyncedTweet[]> {
   const articles = document.querySelectorAll('article[data-testid="tweet"]');
   const tweets: SyncedTweet[] = [];
 
   for (const article of articles) {
-    const tweet = extractSingleTweet(article, source);
+    const tweet = await extractSingleTweet(article, source);
     if (tweet) tweets.push(tweet);
   }
 
   return tweets;
 }
 
-export function extractSingleTweet(article: Element, source: SyncSource): SyncedTweet | null {
+export async function extractSingleTweet(article: Element, source: SyncSource): Promise<SyncedTweet | null> {
   // Extract tweet URL and ID from the time link
   let tweetUrl = '';
   let tweetId = '';
@@ -48,8 +48,20 @@ export function extractSingleTweet(article: Element, source: SyncSource): Synced
     author = userNameEl.innerText.split('\n')[0];
   }
 
-  // Tweet text
+  // Tweet text - expand if folded before extraction
   const tweetTextEl = article.querySelector('[data-testid="tweetText"]') as HTMLElement | null;
+
+  // Try to expand "Show more" button if it exists
+  // The button is a sibling of tweetText, not a child
+  if (tweetTextEl) {
+    const showMoreBtn = tweetTextEl.parentElement?.querySelector('[data-testid="tweet-text-show-more-link"]') as HTMLElement | null;
+    if (showMoreBtn) {
+      showMoreBtn.click();
+      // Wait for content to expand
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
+
   let text = tweetTextEl?.innerText ?? '';
   let hasArticle = false;
 

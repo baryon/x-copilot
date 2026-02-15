@@ -24,7 +24,7 @@ export async function startExtraction(source: SyncSource): Promise<void> {
   try {
     while (running) {
       // Extract current visible tweets
-      const tweets = extractTweetsFromPage(source);
+      const tweets = await extractTweetsFromPage(source);
       let foundNew = false;
 
       for (const tweet of tweets) {

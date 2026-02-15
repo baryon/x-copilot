@@ -126,7 +126,7 @@ function injectIntoArticleTopBar(): void {
 }
 
 async function handleSummarizeClick(article: Element): Promise<void> {
-  const tweet = extractSingleTweet(article, 'bookmarks');
+  const tweet = await extractSingleTweet(article, 'bookmarks');
   if (!tweet) return;
 
   showStreaming();
