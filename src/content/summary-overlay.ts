@@ -4,7 +4,15 @@ import { sendMessage } from '@shared/messaging';
 
 const OVERLAY_ID = 'xbs-summary-overlay';
 
-let currentData: { tweetText: string; author: string; tweetUrl: string; summary: string; reply: string } | null = null;
+let currentData: {
+  tweetText: string;
+  author: string;
+  tweetUrl: string;
+  summary: string;
+  reply: string;
+  mediaUrls?: string[];
+  cardImageUrl?: string;
+} | null = null;
 let streamBuffer = '';
 
 /** All child elements inside overlay need explicit color-scheme to fight X dark mode */
@@ -131,6 +139,8 @@ export function updateOverlay(msg: SummarizeResultMessage): void {
     tweetUrl: msg.tweetUrl,
     summary: msg.summary,
     reply: msg.reply,
+    mediaUrls: msg.mediaUrls,
+    cardImageUrl: msg.cardImageUrl,
   };
 
   overlay.innerHTML = `
@@ -259,6 +269,8 @@ function handleSaveMarkdown(): void {
     tweetUrl: currentData.tweetUrl,
     summary: currentData.summary,
     reply,
+    mediaUrls: currentData.mediaUrls,
+    cardImageUrl: currentData.cardImageUrl,
   });
 }
 

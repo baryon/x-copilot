@@ -71,6 +71,8 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
               tweetText: message.tweetText,
               author: message.author,
               tweetUrl: message.tweetUrl,
+              mediaUrls: message.mediaUrls,
+              cardImageUrl: message.cardImageUrl,
             });
           }
           sendResponse({ success: true, data: result });
@@ -84,6 +86,8 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
               tweetText: message.tweetText,
               author: message.author,
               tweetUrl: message.tweetUrl,
+              mediaUrls: message.mediaUrls,
+              cardImageUrl: message.cardImageUrl,
               error: e.message,
             });
           }
@@ -105,6 +109,8 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
         message.tweetUrl,
         message.summary,
         message.reply,
+        message.mediaUrls,
+        message.cardImageUrl,
       );
       sendResponse({ success: true });
       return true;

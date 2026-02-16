@@ -30,9 +30,24 @@ export function exportMarkdown(
   tweetUrl: string,
   summary: string,
   reply: string,
+  mediaUrls?: string[],
+  cardImageUrl?: string,
 ): void {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
+
+  // Build images section
+  let imagesSection = '';
+  if (cardImageUrl) {
+    imagesSection += `\n### 文章封面\n\n![Article Cover](${cardImageUrl})\n`;
+  }
+  if (mediaUrls && mediaUrls.length > 0) {
+    imagesSection += `\n### 媒体图片\n\n`;
+    mediaUrls.forEach((url, index) => {
+      imagesSection += `![Media ${index + 1}](${url})\n\n`;
+    });
+  }
+
   const content = `# 推文总结
 
 > 作者: ${author}
@@ -41,7 +56,7 @@ export function exportMarkdown(
 
 ## 原文
 
-${tweetText}
+${tweetText}${imagesSection}
 
 ## AI 总结
 

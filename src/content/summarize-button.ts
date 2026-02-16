@@ -137,6 +137,8 @@ async function handleSummarizeClick(article: Element): Promise<void> {
       tweetText: tweet.text + (tweet.quotedText ? `\n\n[引用] ${tweet.quotedAuthor}: ${tweet.quotedText}` : ''),
       author: tweet.author || tweet.authorHandle,
       tweetUrl: tweet.tweetUrl,
+      mediaUrls: tweet.mediaUrls,
+      cardImageUrl: tweet.cardImageUrl,
     });
     if (!res.success && res.error) {
       showError(res.error);

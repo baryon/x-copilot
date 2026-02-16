@@ -112,6 +112,8 @@ export interface SummarizeTweetMessage {
   tweetText: string;
   author: string;
   tweetUrl: string;
+  mediaUrls?: string[];
+  cardImageUrl?: string;
   userPrompt?: string;
 }
 
@@ -123,6 +125,8 @@ export interface SummarizeResultMessage {
   tweetText: string;
   author: string;
   tweetUrl: string;
+  mediaUrls?: string[];
+  cardImageUrl?: string;
   error?: string;
 }
 
@@ -148,6 +152,8 @@ export interface ExportMarkdownMessage {
   tweetUrl: string;
   summary: string;
   reply: string;
+  mediaUrls?: string[];
+  cardImageUrl?: string;
 }
 
 // Background → Content
