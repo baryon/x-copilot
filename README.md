@@ -30,7 +30,13 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 
 ## Installation
 
-### Option 1: Install from GitHub Release (Recommended)
+### Option 1: Install from Chrome Web Store (Recommended)
+
+[**Install from Chrome Web Store**](https://chromewebstore.google.com/detail/x-copilot/bidoabmcffbhbphkhmnmihilchdljbpa)
+
+Click the link above to install directly from the Chrome Web Store — the easiest and safest way to get started.
+
+### Option 2: Install from GitHub Release
 
 1. Go to the [Releases page](https://github.com/baryon/x-copilot/releases)
 2. Download the latest `x-copilot-v*.*.*.zip` file
@@ -40,7 +46,7 @@ A Chrome extension for X (Twitter) power users — sync bookmarks & likes to loc
 6. Click **Load unpacked** and select the unzipped folder
 7. Pin the extension icon in the toolbar
 
-### Option 2: Build from Source
+### Option 3: Build from Source
 
 #### Prerequisites
 
@@ -142,7 +148,13 @@ MIT
 
 ### 安装
 
-#### 方式一:下载预构建版本(推荐)
+#### 方式一:从 Chrome 网上应用店安装(推荐)
+
+[**从 Chrome 网上应用店安装**](https://chromewebstore.google.com/detail/x-copilot/bidoabmcffbhbphkhmnmihilchdljbpa)
+
+点击上方链接直接从 Chrome 网上应用店安装 — 最简单、最安全的安装方式。
+
+#### 方式二:下载预构建版本
 
 1. 访问 [Releases 页面](https://github.com/baryon/x-copilot/releases)
 2. 下载最新的 `x-copilot-v*.*.*.zip` 文件
@@ -152,7 +164,7 @@ MIT
 6. 点击 **加载已解压的扩展程序**，选择解压后的文件夹
 7. 将扩展图标固定到工具栏
 
-#### 方式二:从源码构建
+#### 方式三:从源码构建
 
 ```bash
 git clone git@github.com:baryon/x-copilot.git
