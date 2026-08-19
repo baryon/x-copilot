@@ -30,6 +30,7 @@ export function exportMarkdown(
   tweetUrl: string,
   summary: string,
   reply: string,
+  factCheck?: string,
   mediaUrls?: string[],
   cardImageUrl?: string,
 ): void {
@@ -57,11 +58,7 @@ export function exportMarkdown(
 ## 原文
 
 ${tweetText}${imagesSection}
-
-## AI 总结
-
-${summary}
-
+${summary ? `\n## AI 总结\n\n${summary}\n` : ''}${factCheck ? `\n## 事实查验\n\n${factCheck}\n` : ''}
 ## 建议回复
 
 ${reply}

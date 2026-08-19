@@ -9,6 +9,9 @@ export default defineManifest({
   host_permissions: [
     'https://x.com/*',
     'https://twitter.com/*',
+    'https://*/*',
+    'http://localhost/*',
+    'http://127.0.0.1/*',
   ],
   background: {
     service_worker: 'src/background/index.ts',

@@ -42,6 +42,7 @@ export default function SettingsTab({
   onSave,
 }: SettingsTabProps) {
   const [status, setStatus] = useState<{ message: string; type: 'success' | 'error' | '' }>({ message: '', type: '' });
+  const [testing, setTesting] = useState(false);
 
   const handleSave = useCallback(async () => {
     const result = await onSave();
@@ -60,6 +61,32 @@ export default function SettingsTab({
       setStatus({ message: result.error || '清除失败', type: 'error' });
     }
   }, []);
+
+  const handleTest = useCallback(async () => {
+    if (!apiKey.trim()) {
+      setStatus({ message: '请先填写 API Key', type: 'error' });
+      return;
+    }
+
+    setTesting(true);
+    setStatus({ message: '', type: '' });
+    try {
+      const result = await sendMessage({
+        type: 'TEST_MODEL',
+        provider,
+        baseUrl,
+        model,
+        apiKey,
+      });
+      if (result.success) {
+        setStatus({ message: '模型连接成功', type: 'success' });
+      } else {
+        setStatus({ message: result.error || '连接失败', type: 'error' });
+      }
+    } finally {
+      setTesting(false);
+    }
+  }, [provider, baseUrl, model, apiKey]);
 
   return (
     <div>
@@ -170,6 +197,15 @@ export default function SettingsTab({
           </select>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={handleTest}
+        disabled={testing}
+        className="w-full py-2.5 mb-3 bg-white text-x-blue border border-x-blue rounded-full text-[13px] font-bold cursor-pointer hover:bg-sky-50 active:bg-sky-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {testing ? '测试中…' : '测试模型'}
+      </button>
 
       {/* Save */}
       <button

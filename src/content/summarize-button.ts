@@ -1,7 +1,7 @@
-import { STORAGE_KEY_API_KEY } from '@shared/constants';
+import { STORAGE_KEY_API_KEY, isLongPost } from '@shared/constants';
 import { sendMessage } from '@shared/messaging';
 import { extractSingleTweet } from './extractor/tweet-extractor';
-import { showStreaming, showError } from './summary-overlay';
+import { showStreaming, showLoading, showError } from './summary-overlay';
 
 const BUTTON_ATTR = 'data-xbs-summarize';
 const TOPBAR_ATTR = 'data-xbs-summarize-topbar';
@@ -129,12 +129,17 @@ async function handleSummarizeClick(article: Element): Promise<void> {
   const tweet = await extractSingleTweet(article, 'bookmarks');
   if (!tweet) return;
 
-  showStreaming();
+  const tweetText = tweet.text + (tweet.quotedText ? `\n\n[引用] ${tweet.quotedAuthor}: ${tweet.quotedText}` : '');
+  if (isLongPost(tweetText)) {
+    showStreaming('总结');
+  } else {
+    showLoading('正在生成回复...');
+  }
 
   try {
     const res = await sendMessage({
       type: 'SUMMARIZE_TWEET',
-      tweetText: tweet.text + (tweet.quotedText ? `\n\n[引用] ${tweet.quotedAuthor}: ${tweet.quotedText}` : ''),
+      tweetText,
       author: tweet.author || tweet.authorHandle,
       tweetUrl: tweet.tweetUrl,
       mediaUrls: tweet.mediaUrls,

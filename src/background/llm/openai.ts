@@ -12,10 +12,21 @@ function normalizeBaseUrl(baseUrl: string): string {
   return stripped;
 }
 
+function isOfficialOpenAI(baseUrl: string): boolean {
+  try {
+    const { hostname } = new URL(baseUrl);
+    return hostname === 'api.openai.com' || hostname.endsWith('.openai.com');
+  } catch {
+    return false;
+  }
+}
+
 /**
- * gpt-5 / o1 models use the Responses API (/responses + input param).
+ * Official OpenAI gpt-5 / o1 models use the Responses API.
+ * Custom proxies almost always only implement Chat Completions.
  */
-function usesResponsesApi(model: string): boolean {
+function usesResponsesApi(model: string, baseUrl: string): boolean {
+  if (!isOfficialOpenAI(baseUrl)) return false;
   return /^gpt-5/.test(model) || /^o1/.test(model);
 }
 
@@ -89,7 +100,7 @@ export async function callOpenAI(
   onChunk?: (text: string) => void,
 ): Promise<string> {
   const normalized = normalizeBaseUrl(baseUrl);
-  const responsesApi = usesResponsesApi(model);
+  const responsesApi = usesResponsesApi(model, normalized);
 
   const headers = {
     'Content-Type': 'application/json',

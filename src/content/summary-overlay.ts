@@ -1,5 +1,5 @@
 import type { ReplyStyle, SummarizeResultMessage } from '@shared/types';
-import { REPLY_STYLE_LABELS } from '@shared/constants';
+import { DEFAULT_REPLY_STYLE, REPLY_STYLE_LABELS, resolveReplyStyle, isLongPost } from '@shared/constants';
 import { sendMessage } from '@shared/messaging';
 
 const OVERLAY_ID = 'xbs-summary-overlay';
@@ -10,6 +10,7 @@ let currentData: {
   tweetUrl: string;
   summary: string;
   reply: string;
+  factCheck: string;
   mediaUrls?: string[];
   cardImageUrl?: string;
 } | null = null;
@@ -18,7 +19,7 @@ let streamBuffer = '';
 /** All child elements inside overlay need explicit color-scheme to fight X dark mode */
 const RESET_CSS = 'color-scheme:light;color:#0f1419;background-color:#fff;';
 
-const SELECT_CSS = 'padding:6px 8px;border:1.5px solid #cfd9de;border-radius:8px;font-size:13px;color:#0f1419;background-color:#fff;outline:none;color-scheme:light;cursor:pointer;';
+const SELECT_CSS = 'width:100%;box-sizing:border-box;padding:6px 8px;border:1.5px solid #cfd9de;border-radius:8px;font-size:13px;color:#0f1419;background-color:#fff;outline:none;color-scheme:light;cursor:pointer;';
 const BTN_SECONDARY_CSS = 'padding:6px 14px;background:#fff;color:#536471;border:1.5px solid #cfd9de;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;white-space:nowrap;';
 
 function getOrCreateOverlay(): HTMLElement {
@@ -73,7 +74,7 @@ export function showError(message: string): void {
   overlay.querySelector('#xbs-overlay-close')?.addEventListener('click', hideOverlay);
 }
 
-export function showLoading(): void {
+export function showLoading(message = 'AI 正在分析...'): void {
   const overlay = getOrCreateOverlay();
   overlay.style.display = 'block';
   overlay.innerHTML = `
@@ -81,7 +82,7 @@ export function showLoading(): void {
     <div style="padding:20px;${RESET_CSS}">
       <div style="display:flex;align-items:center;gap:10px;padding:40px 0;">
         <div style="width:20px;height:20px;border:2.5px solid #1d9bf0;border-top-color:transparent;border-radius:50%;animation:xbs-spin 0.8s linear infinite;"></div>
-        <span style="color:#536471;font-size:14px;">AI 正在分析...</span>
+        <span style="color:#536471;font-size:14px;">${escapeHtml(message)}</span>
       </div>
     </div>
     <style>@keyframes xbs-spin { to { transform: rotate(360deg); } }</style>
@@ -89,7 +90,7 @@ export function showLoading(): void {
   overlay.querySelector('#xbs-overlay-close')?.addEventListener('click', hideOverlay);
 }
 
-export function showStreaming(): void {
+export function showStreaming(title = '总结'): void {
   streamBuffer = '';
   const overlay = getOrCreateOverlay();
   overlay.style.display = 'block';
@@ -97,7 +98,7 @@ export function showStreaming(): void {
     ${headerHtml('AI 总结')}
     <div style="padding:20px;height:calc(100vh - 57px);overflow-y:auto;box-sizing:border-box;${RESET_CSS}">
       <div style="margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">总结</div>
+        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">${escapeHtml(title)}</div>
         <div id="xbs-stream-content" style="font-size:14px;color:#0f1419;line-height:1.6;padding:12px 14px;background:#f7f9f9;border-radius:10px;min-height:40px;">
           <span style="display:inline-block;width:2px;height:14px;background:#1d9bf0;animation:xbs-blink 1s step-end infinite;vertical-align:text-bottom;"></span>
         </div>
@@ -139,6 +140,7 @@ export function updateOverlay(msg: SummarizeResultMessage): void {
     tweetUrl: msg.tweetUrl,
     summary: msg.summary,
     reply: msg.reply,
+    factCheck: msg.factCheck || '',
     mediaUrls: msg.mediaUrls,
     cardImageUrl: msg.cardImageUrl,
   };
@@ -147,10 +149,8 @@ export function updateOverlay(msg: SummarizeResultMessage): void {
     ${headerHtml('AI 总结')}
     <div style="padding:20px;height:calc(100vh - 57px);overflow-y:auto;box-sizing:border-box;${RESET_CSS}">
 
-      <div style="margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">总结</div>
-        <div style="font-size:14px;color:#0f1419;line-height:1.6;padding:12px 14px;background:#f7f9f9;border-radius:10px;">${renderMarkdown(msg.summary)}</div>
-      </div>
+      ${summarySectionHtml(msg.summary)}
+      ${factCheckSectionHtml(msg.tweetText, msg.factCheck || '')}
 
       <div style="margin-bottom:20px;">
         <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">建议回复</div>
@@ -160,7 +160,7 @@ export function updateOverlay(msg: SummarizeResultMessage): void {
       <div style="margin-bottom:20px;padding:12px 14px;background:#f7f9f9;border-radius:10px;">
         <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">重新生成</div>
         <input id="xbs-user-prompt" type="text" placeholder="输入额外指令，如：用英文回复、更幽默一点..." style="width:100%;padding:8px 12px;border:1.5px solid #cfd9de;border-radius:8px;font-size:13px;color:#0f1419;background-color:#fff;outline:none;box-sizing:border-box;color-scheme:light;font-family:inherit;margin-bottom:10px;" />
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
           ${styleOptionsHtml()}
           <button id="xbs-regenerate" style="${BTN_SECONDARY_CSS}">重新生成</button>
         </div>
@@ -174,22 +174,93 @@ export function updateOverlay(msg: SummarizeResultMessage): void {
   `;
 
   // Restore current replyStyle from storage
-  chrome.storage.sync.get({ replyStyle: 'professional' }, (data) => {
+  chrome.storage.sync.get({ replyStyle: DEFAULT_REPLY_STYLE }, (data) => {
     const select = document.getElementById('xbs-style-select') as HTMLSelectElement | null;
-    if (select) select.value = data.replyStyle as string;
+    if (select) select.value = resolveReplyStyle(data.replyStyle);
   });
 
   overlay.querySelector('#xbs-overlay-close')?.addEventListener('click', hideOverlay);
   overlay.querySelector('#xbs-copy-reply')?.addEventListener('click', handleCopyReply);
   overlay.querySelector('#xbs-save-md')?.addEventListener('click', handleSaveMarkdown);
   overlay.querySelector('#xbs-regenerate')?.addEventListener('click', handleRegenerate);
+  overlay.querySelector('#xbs-factcheck')?.addEventListener('click', handleFactCheck);
+}
+
+function summarySectionHtml(summary: string): string {
+  if (!summary) return '';
+  return `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">总结</div>
+        <div style="font-size:14px;color:#0f1419;line-height:1.6;padding:12px 14px;background:#f7f9f9;border-radius:10px;">${renderMarkdown(summary)}</div>
+      </div>`;
+}
+
+function factCheckSectionHtml(tweetText: string, factCheck: string): string {
+  if (factCheck) {
+    return `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">事实查验</div>
+        <div id="xbs-factcheck-body" style="font-size:14px;color:#0f1419;line-height:1.6;padding:12px 14px;background:#f7f9f9;border-radius:10px;">${renderMarkdown(factCheck)}</div>
+      </div>`;
+  }
+  if (isLongPost(tweetText)) return '';
+  return `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:#536471;margin-bottom:8px;">事实查验</div>
+        <div id="xbs-factcheck-body">
+          <button id="xbs-factcheck" type="button" style="${BTN_SECONDARY_CSS}width:100%;">查验事实</button>
+        </div>
+      </div>`;
+}
+
+async function handleFactCheck(): Promise<void> {
+  if (!currentData) return;
+
+  const body = document.getElementById('xbs-factcheck-body');
+  const btn = document.getElementById('xbs-factcheck') as HTMLButtonElement | null;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '查验中...';
+  }
+
+  try {
+    const res = await sendMessage({
+      type: 'FACT_CHECK_TWEET',
+      tweetText: currentData.tweetText,
+      author: currentData.author,
+    });
+    if (res.success && typeof res.data === 'string') {
+      currentData.factCheck = res.data;
+      if (body) {
+        body.style.padding = '12px 14px';
+        body.style.background = '#f7f9f9';
+        body.style.borderRadius = '10px';
+        body.style.fontSize = '14px';
+        body.style.color = '#0f1419';
+        body.style.lineHeight = '1.6';
+        body.innerHTML = renderMarkdown(res.data);
+      }
+    } else {
+      if (body) {
+        body.innerHTML = `<div style="color:#f4212e;font-size:13px;margin-bottom:8px;">${escapeHtml(res.error || '查验失败')}</div>
+          <button id="xbs-factcheck" type="button" style="${BTN_SECONDARY_CSS}width:100%;">重试</button>`;
+        document.getElementById('xbs-factcheck')?.addEventListener('click', handleFactCheck);
+      }
+    }
+  } catch (e) {
+    if (body) {
+      body.innerHTML = `<div style="color:#f4212e;font-size:13px;margin-bottom:8px;">${escapeHtml((e as Error).message || '查验失败')}</div>
+        <button id="xbs-factcheck" type="button" style="${BTN_SECONDARY_CSS}width:100%;">重试</button>`;
+      document.getElementById('xbs-factcheck')?.addEventListener('click', handleFactCheck);
+    }
+  }
 }
 
 async function handleRegenerate(): Promise<void> {
   if (!currentData) return;
 
   const select = document.getElementById('xbs-style-select') as HTMLSelectElement | null;
-  const newStyle = (select?.value || 'professional') as ReplyStyle;
+  const newStyle = resolveReplyStyle(select?.value);
   const promptInput = document.getElementById('xbs-user-prompt') as HTMLInputElement | null;
   const userPrompt = promptInput?.value.trim() || undefined;
 
@@ -269,6 +340,7 @@ function handleSaveMarkdown(): void {
     tweetUrl: currentData.tweetUrl,
     summary: currentData.summary,
     reply,
+    factCheck: currentData.factCheck,
     mediaUrls: currentData.mediaUrls,
     cardImageUrl: currentData.cardImageUrl,
   });

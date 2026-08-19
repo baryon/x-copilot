@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AIProvider, Language, ReplyStyle, Settings } from '@shared/types';
-import { STORAGE_KEY_API_KEY, parseXHandle } from '@shared/constants';
+import { STORAGE_KEY_API_KEY, DEFAULT_REPLY_STYLE, parseXHandle, resolveReplyStyle } from '@shared/constants';
 import { encryptApiKey, decryptApiKey } from '@shared/encryption';
 
 export function useSettings() {
@@ -10,14 +10,14 @@ export function useSettings() {
     provider: 'openai',
     baseUrl: '',
     model: '',
-    replyStyle: 'professional',
+    replyStyle: DEFAULT_REPLY_STYLE,
   });
   const [apiKey, setApiKey] = useState('');
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     chrome.storage.sync.get(
-      { language: 'zh-CN', xHandle: '', provider: 'openai', baseUrl: '', model: '', replyStyle: 'professional' },
+      { language: 'zh-CN', xHandle: '', provider: 'openai', baseUrl: '', model: '', replyStyle: DEFAULT_REPLY_STYLE },
       (syncData) => {
         setSettings({
           language: syncData.language as Language,
@@ -25,7 +25,7 @@ export function useSettings() {
           provider: syncData.provider as AIProvider,
           baseUrl: syncData.baseUrl as string,
           model: syncData.model as string,
-          replyStyle: syncData.replyStyle as ReplyStyle,
+          replyStyle: resolveReplyStyle(syncData.replyStyle),
         });
 
         chrome.storage.local.get(STORAGE_KEY_API_KEY, async (localData) => {

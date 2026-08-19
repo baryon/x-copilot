@@ -40,7 +40,14 @@ export interface SyncedTweet {
 
 export type Language = 'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko';
 
-export type ReplyStyle = 'professional' | 'friendly' | 'concise';
+export type ReplyStyle =
+  | 'sharpen'
+  | 'add'
+  | 'riff'
+  | 'rebuttal'
+  | 'question'
+  | 'alternative'
+  | 'nod';
 
 export interface Settings {
   language: Language;
@@ -91,6 +98,14 @@ export interface ClearSyncedDataMessage {
   type: 'CLEAR_SYNCED_DATA';
 }
 
+export interface TestModelMessage {
+  type: 'TEST_MODEL';
+  provider: AIProvider;
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+}
+
 // Content → Background
 export interface SyncProgressMessage {
   type: 'SYNC_PROGRESS';
@@ -122,12 +137,19 @@ export interface SummarizeResultMessage {
   type: 'SUMMARIZE_RESULT';
   summary: string;
   reply: string;
+  factCheck: string;
   tweetText: string;
   author: string;
   tweetUrl: string;
   mediaUrls?: string[];
   cardImageUrl?: string;
   error?: string;
+}
+
+export interface FactCheckTweetMessage {
+  type: 'FACT_CHECK_TWEET';
+  tweetText: string;
+  author: string;
 }
 
 // Content → Background: regenerate reply only
@@ -152,6 +174,7 @@ export interface ExportMarkdownMessage {
   tweetUrl: string;
   summary: string;
   reply: string;
+  factCheck?: string;
   mediaUrls?: string[];
   cardImageUrl?: string;
 }
@@ -172,6 +195,7 @@ export type ExtensionMessage =
   | GetSyncStatusMessage
   | GetSyncedTweetsMessage
   | ClearSyncedDataMessage
+  | TestModelMessage
   | SyncProgressMessage
   | SyncCompleteMessage
   | SyncErrorMessage
@@ -181,6 +205,7 @@ export type ExtensionMessage =
   | SummarizeResultMessage
   | SummarizeStreamChunkMessage
   | RegenerateReplyMessage
+  | FactCheckTweetMessage
   | ExportMarkdownMessage;
 
 export interface MessageResponse {

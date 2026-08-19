@@ -13,10 +13,39 @@ export const DEFAULT_BASE_URLS: Record<AIProvider, string> = {
 };
 
 export const REPLY_STYLE_LABELS: Record<ReplyStyle, string> = {
-  professional: '专业讨论',
-  friendly: '友好互动',
-  concise: '简洁赞同',
+  sharpen: '替他说得更狠',
+  add: '补一块原帖没写的硬东西',
+  riff: '顺着原格式接梗',
+  rebuttal: '一句钉死荒谬处',
+  question: '一个楼主愿意回的问题',
+  alternative: '给出手方案，而不只是反对',
+  nod: '极短的站队',
 };
+
+const LEGACY_REPLY_STYLES: Record<string, ReplyStyle> = {
+  professional: 'add',
+  friendly: 'sharpen',
+  concise: 'nod',
+  witty: 'riff',
+};
+
+export const DEFAULT_REPLY_STYLE: ReplyStyle = 'sharpen';
+
+export const LONG_POST_MIN_CHARS = 288;
+
+export function isLongPost(text: string): boolean {
+  return [...text].length > LONG_POST_MIN_CHARS;
+}
+
+export function resolveReplyStyle(value: unknown): ReplyStyle {
+  if (typeof value === 'string' && value in REPLY_STYLE_LABELS) {
+    return value as ReplyStyle;
+  }
+  if (typeof value === 'string' && value in LEGACY_REPLY_STYLES) {
+    return LEGACY_REPLY_STYLES[value];
+  }
+  return DEFAULT_REPLY_STYLE;
+}
 
 export const STORAGE_KEY_API_KEY = 'encryptedApiKey';
 

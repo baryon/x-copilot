@@ -11,7 +11,7 @@ export default function StatusMessage({ message, type }: StatusMessageProps) {
   useEffect(() => {
     if (message) {
       setVisible(true);
-      const timer = setTimeout(() => setVisible(false), 2000);
+      const timer = setTimeout(() => setVisible(false), type === 'error' ? 6000 : 2500);
       return () => clearTimeout(timer);
     }
     setVisible(false);

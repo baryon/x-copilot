@@ -2,9 +2,10 @@ import type { ExtensionMessage, MessageResponse } from '@shared/types';
 import { onMessage, sendTabMessage } from '@shared/messaging';
 import { getSyncStatus, getSyncedTweets, clearSyncedTweets, setSyncStatus } from './storage';
 import { startSync, handleProgress, handleComplete, handleError, stopSync } from './sync-coordinator';
-import { DEFAULT_SYNC_STATUS } from '@shared/constants';
-import { summarizeTweet, regenerateReply } from './summarizer';
+import { DEFAULT_SYNC_STATUS, isLongPost } from '@shared/constants';
+import { summarizeTweet, regenerateReply, factCheckTweet } from './summarizer';
 import { exportMarkdown } from './markdown-export';
+import { testLLM } from './llm/index';
 
 onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse) => void) => {
   switch (message.type) {
@@ -38,6 +39,12 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
         .catch((e: Error) => sendResponse({ success: false, error: e.message }));
       return true;
 
+    case 'TEST_MODEL':
+      testLLM(message.provider, message.baseUrl, message.apiKey, message.model)
+        .then(() => sendResponse({ success: true }))
+        .catch((e: Error) => sendResponse({ success: false, error: e.message }));
+      return true;
+
     case 'SYNC_PROGRESS':
       handleProgress(message.tweets)
         .then(() => sendResponse({ success: true }))
@@ -58,7 +65,7 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
 
     case 'SUMMARIZE_TWEET': {
       const tabId = sender.tab?.id;
-      const onChunk = tabId
+      const onChunk = tabId && isLongPost(message.tweetText)
         ? (chunk: string) => { sendTabMessage(tabId, { type: 'SUMMARIZE_STREAM_CHUNK', chunk }); }
         : undefined;
       summarizeTweet(message.tweetText, message.author, message.userPrompt, onChunk)
@@ -68,6 +75,7 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
               type: 'SUMMARIZE_RESULT',
               summary: result.summary,
               reply: result.reply,
+              factCheck: result.factCheck,
               tweetText: message.tweetText,
               author: message.author,
               tweetUrl: message.tweetUrl,
@@ -83,6 +91,7 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
               type: 'SUMMARIZE_RESULT',
               summary: '',
               reply: '',
+              factCheck: '',
               tweetText: message.tweetText,
               author: message.author,
               tweetUrl: message.tweetUrl,
@@ -102,6 +111,12 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
         .catch((e: Error) => sendResponse({ success: false, error: e.message }));
       return true;
 
+    case 'FACT_CHECK_TWEET':
+      factCheckTweet(message.tweetText, message.author)
+        .then((text) => sendResponse({ success: true, data: text }))
+        .catch((e: Error) => sendResponse({ success: false, error: e.message }));
+      return true;
+
     case 'EXPORT_MARKDOWN':
       exportMarkdown(
         message.tweetText,
@@ -109,6 +124,7 @@ onMessage((message: ExtensionMessage, sender, sendResponse: (r: MessageResponse)
         message.tweetUrl,
         message.summary,
         message.reply,
+        message.factCheck,
         message.mediaUrls,
         message.cardImageUrl,
       );
