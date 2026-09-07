@@ -51,6 +51,21 @@ No twist ending, no extra take.`,
 const COOPERATIVE_STYLES = new Set<ReplyStyle>(['sharpen', 'add', 'riff', 'nod']);
 const CHALLENGE_STYLES = new Set<ReplyStyle>(['rebuttal', 'alternative']);
 
+/** 总结 / 事实查验：像人记的笔记，不是助手在讲解。 */
+const PLAIN_VOICE = `Voice for 总结 and 事实查验:
+Write like notes a person took. Declarative sentences. No assistant, no briefing, no chat with the reader.
+
+A native writer would not use these shells. If you did, rewrite the line:
+- Sequence: 先…再… / 先把…再…
+- False contrast: 不是…而是 / 不是…是 / not X but Y / It is not about
+- Fake insight: 其实 / 真正 / 本质上 / 关键在于 / 核心在于 / 说白了 / 更重要的是 / 归根结底 / actually / at its core
+- Dummy 它 (name the claim, number, person, or post)
+- Wrappers: 这篇/该帖主要讲的是 / 总的来说 / 值得注意的是 / 首先…其次…最后 / in order to
+- English style ticks: em dash as a rhetorical beat; two-word fragment sentences ("Not a lecture.")
+  (The fact-check separator "claim — reason" is a field delimiter, keep it.)
+
+Do: name the thing. One fact or judgment per line. No padding metaphor. No empty comparative (更合适 / 更自然 / more natural).`;
+
 const REPLY_STANCE_RULES = `How to take a stance:
 - Stay with the author's line. Do not default to a take-down.
 - Openers like 不过 / 但是 / 其实 / Actually / "the real issue is" are usually wrong for this style.
@@ -60,7 +75,15 @@ const REPLY_HARD_RULES = `Hard rules for the reply:
 - MUST be under 200 characters (it will be posted on X).
 - Match the language of the original tweet (if the tweet is in English, reply in English; if Chinese, reply in Chinese).
 - Write like a real person on X, not an AI assistant or a debate club.
-- No cliché openers: "Great point!", "Well said!", "This is spot on!", 说得太对了, 很有道理, 完全同意, 作为一名...`;
+- No cliché openers: "Great point!", "Well said!", "This is spot on!", 说得太对了, 很有道理, 完全同意, 作为一名...
+- No insight-shells even in a tweet: 其实 / 真正 / 说白了 / 关键在于 / 本质上 / 不是…而是 / actually / "the real issue is".`;
+
+function localeBlock(langName: string): string {
+  if (langName === '繁體中文') {
+    return '\n繁體中文用台灣用詞：帳號、資訊、軟體、影片、使用者、點選、紀錄、目前。不用：信息、軟件、視頻、用戶、點擊、賬號。\n';
+  }
+  return '';
+}
 
 function replyInstructions(style: ReplyStyle): string {
   const parts = [REPLY_STYLE_PROMPTS[style]];
@@ -142,20 +165,22 @@ function longPostPrompt(cfg: LLMConfig, author: string, tweetText: string, userP
     : 'The fact-check is for the 事实查验 section only. Do not turn the reply into a verdict.';
 
   return {
-    system: `You are an expert content analyst. The user will give you a long post. Respond in ${cfg.langName}. Keep every section short.
+    system: `Summarize a long post. Respond in ${cfg.langName}. Keep every section short.
+${localeBlock(cfg.langName)}
+${PLAIN_VOICE}
 
 ## Part 1 — Summary
 
-- **TLDR**: one sentence.
-- **要点**: at most 3 bullets, one line each.
+- **TLDR**: one sentence stating the post's point. Not a wrapper ("这篇主要讲的是…", "作者认为…").
+- **要点**: at most 3 bullets, one line each. Claims and facts from the post, not commentary about the post.
 - **步骤**: only if the post is a tutorial; numbered, one line each. Otherwise omit.
 
-No credibility scores. No extra headings.
+No credibility scores. No extra headings. No walkthrough of your own process.
 
 ## Part 2 — Fact check
 
 Only if there are checkable factual claims. At most 2 items, each one line:
-- ✅ / ⚠️ / ❌ / ❓ <claim> — <short reason>
+- ✅ / ⚠️ / ❌ / ❓ <claim> — <short reason, a fact not a slogan>
 
 If the post is opinion, a joke, or a mood, omit the 事实查验 section entirely.
 
@@ -183,8 +208,8 @@ Use exactly this structure. Omit ## 事实查验 when there is nothing to check.
 
 function shortPostPrompt(cfg: LLMConfig, author: string, tweetText: string, userPrompt?: string): LLMPrompt {
   return {
-    system: `You write tweet replies. The tweet is short — do not summarize it, do not fact-check it.
-
+    system: `You write tweet replies. The tweet is short: do not summarize it, do not fact-check it.
+${localeBlock(cfg.langName)}
 ${replyInstructions(cfg.replyStyle)}
 
 Output ONLY this structure:
@@ -198,10 +223,12 @@ Output ONLY this structure:
 export async function factCheckTweet(tweetText: string, author: string): Promise<string> {
   const cfg = await loadLLMConfig();
   const prompt: LLMPrompt = {
-    system: `You fact-check a tweet. Respond in ${cfg.langName}. Keep it short.
+    system: `Fact-check a tweet. Respond in ${cfg.langName}. Keep it short.
+${localeBlock(cfg.langName)}
+${PLAIN_VOICE}
 
 Only check 1–2 verifiable claims. Each item is one line:
-- ✅ / ⚠️ / ❌ / ❓ <claim> — <short reason>
+- ✅ / ⚠️ / ❌ / ❓ <claim> — <short reason, a fact not a slogan>
 
 If the tweet is opinion, a joke, or a mood, reply with one line: 无明显可核查事实。
 
@@ -216,8 +243,8 @@ export async function regenerateReply(tweetText: string, author: string, userPro
   const cfg = await loadLLMConfig();
 
   const prompt: LLMPrompt = {
-    system: `You write tweet replies. Generate a single reply for the given tweet.
-
+    system: `Write one tweet reply for the given tweet.
+${localeBlock(cfg.langName)}
 ${replyInstructions(cfg.replyStyle)}
 
 Output ONLY the reply text, nothing else — no labels, no quotes, no explanation.`,
