@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SyncedTweet } from '@shared/types';
 import { STORAGE_KEY_TWEETS } from '@shared/constants';
+import {
+  filterTweetsBySource,
+  getTweetSourceLabel,
+  TWEET_SOURCE_FILTER_OPTIONS,
+  type TweetSourceFilter,
+} from './tweet-source';
+import { getTweetDisplayTime, sortTweetsByPublishedTime } from './tweet-time';
 
 function getInitialQuery(): string {
   const params = new URLSearchParams(window.location.search);
@@ -20,6 +27,7 @@ export default function App() {
   const [allTweets, setAllTweets] = useState<SyncedTweet[]>([]);
   const [query, setQuery] = useState(getInitialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const [sourceFilter, setSourceFilter] = useState<TweetSourceFilter>('all');
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
   // Load tweets and listen for changes
@@ -46,9 +54,10 @@ export default function App() {
     debounceTimer.current = setTimeout(() => setDebouncedQuery(value), 200);
   }, []);
 
-  // Filter tweets
-  const filtered = debouncedQuery
-    ? allTweets.filter((t) => {
+  // Filter and sort tweets
+  const sourceTweets = filterTweetsBySource(allTweets, sourceFilter);
+  const matchingTweets = debouncedQuery
+    ? sourceTweets.filter((t) => {
         const q = debouncedQuery.toLowerCase();
         return (
           t.text.toLowerCase().includes(q) ||
@@ -58,7 +67,13 @@ export default function App() {
           t.cardText.toLowerCase().includes(q)
         );
       })
-    : allTweets;
+    : sourceTweets;
+  const filtered = sortTweetsByPublishedTime(matchingTweets);
+  const countText = debouncedQuery
+    ? `找到 ${filtered.length} 条结果（共 ${allTweets.length} 条）`
+    : sourceFilter === 'all'
+      ? `共 ${allTweets.length} 条推文`
+      : `显示 ${filtered.length} 条（共 ${allTweets.length} 条）`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,10 +101,32 @@ export default function App() {
               </button>
             )}
           </div>
+          <div
+            className="mt-2 grid grid-cols-4 gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5"
+            role="group"
+            aria-label="筛选推文来源"
+          >
+            {TWEET_SOURCE_FILTER_OPTIONS.map((option) => {
+              const selected = sourceFilter === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setSourceFilter(option.value)}
+                  className={`min-w-0 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-x-blue ${
+                    selected
+                      ? 'bg-x-blue text-white shadow-sm'
+                      : 'text-x-text-secondary hover:bg-gray-100'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
           <div className="text-xs text-x-text-muted mt-1.5">
-            {debouncedQuery
-              ? `找到 ${filtered.length} 条结果（共 ${allTweets.length} 条）`
-              : `共 ${allTweets.length} 条推文`}
+            {countText}
           </div>
         </div>
       </div>
@@ -128,10 +165,15 @@ function TweetCard({ tweet }: { tweet: SyncedTweet }) {
       className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-x-blue hover:shadow-sm transition-all no-underline text-x-text"
     >
       {/* Author */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm font-semibold">{tweet.author}</span>
-        <span className="text-xs text-x-text-muted">{tweet.authorHandle}</span>
-        <span className="text-xs text-x-text-muted ml-auto">{formatTime(tweet.syncedAt)}</span>
+      <div className="flex items-center gap-2 mb-2 min-w-0">
+        <span className="text-sm font-semibold truncate">{tweet.author}</span>
+        <span className="text-xs text-x-text-muted truncate">{tweet.authorHandle}</span>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-x-text-muted">
+            {getTweetSourceLabel(tweet.source)}
+          </span>
+          <span className="text-xs text-x-text-muted">{formatTime(getTweetDisplayTime(tweet))}</span>
+        </div>
       </div>
 
       {/* Main text */}

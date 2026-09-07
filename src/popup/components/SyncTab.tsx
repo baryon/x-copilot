@@ -3,11 +3,7 @@ import type { SyncSource, SyncStatus } from '@shared/types';
 import SyncButton from './SyncButton';
 import SyncStatusBar from './SyncStatusBar';
 import { useTweetCount } from '../hooks/useSyncedTweets';
-
-const SOURCES: { id: SyncSource; label: string }[] = [
-  { id: 'bookmarks', label: '书签' },
-  { id: 'likes', label: '喜欢' },
-];
+import { SYNC_SOURCE_OPTIONS } from '@shared/constants';
 
 interface SyncTabProps {
   syncStatus: SyncStatus;
@@ -40,7 +36,7 @@ export default function SyncTab({ syncStatus, xHandle }: SyncTabProps) {
     <div>
       {/* Source selector */}
       <div className="flex gap-1.5 mb-2.5">
-        {SOURCES.map((s) => (
+        {SYNC_SOURCE_OPTIONS.map((s) => (
           <button
             key={s.id}
             onClick={() => !isSyncing && setSource(s.id)}

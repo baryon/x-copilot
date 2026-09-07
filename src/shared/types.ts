@@ -32,8 +32,10 @@ export interface SyncedTweet {
   mediaCount: number;
   mediaUrls: string[];
   hasArticle: boolean;
+  publishedAt?: number;
   syncedAt: number;
   source: SyncSource;
+  syncedSources?: SyncSource[];
 }
 
 // ── Settings ────────────────────────────────────────────────────────────────
@@ -183,6 +185,7 @@ export interface ExportMarkdownMessage {
 export interface BeginExtractionMessage {
   type: 'BEGIN_EXTRACTION';
   source: SyncSource;
+  knownTweetIds: string[];
 }
 
 export interface StopExtractionMessage {

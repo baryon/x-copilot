@@ -55,6 +55,15 @@ export const SYNC_SOURCE_LABELS: Record<SyncSource, string> = {
   own_tweets: '我的推文',
 };
 
+export const SYNC_SOURCE_OPTIONS: ReadonlyArray<{
+  id: SyncSource;
+  label: string;
+}> = [
+  { id: 'bookmarks', label: SYNC_SOURCE_LABELS.bookmarks },
+  { id: 'likes', label: SYNC_SOURCE_LABELS.likes },
+  { id: 'own_tweets', label: SYNC_SOURCE_LABELS.own_tweets },
+];
+
 /**
  * Extract bare handle from various input formats:
  * "lilong", "@lilong", "https://x.com/lilong", "https://x.com/lilong/likes"

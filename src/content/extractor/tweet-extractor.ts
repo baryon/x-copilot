@@ -16,16 +16,22 @@ export async function extractSingleTweet(article: Element, source: SyncSource): 
   // Extract tweet URL and ID from the time link
   let tweetUrl = '';
   let tweetId = '';
+  let publishedAt: number | undefined;
   const quotedTweet = article.querySelector('[data-testid="quoteTweet"]');
 
   const statusLinks = article.querySelectorAll('a[href*="/status/"]');
   for (const link of statusLinks) {
     if (quotedTweet?.contains(link)) continue;
-    if (link.querySelector('time')) {
+    const timeElement = link.querySelector('time');
+    if (timeElement) {
       const href = link.getAttribute('href') || '';
       tweetUrl = href.startsWith('/') ? 'https://x.com' + href : href;
       const match = href.match(/\/status\/(\d+)/);
       if (match) tweetId = match[1];
+
+      const datetime = timeElement.getAttribute('datetime');
+      const parsedPublishedAt = datetime ? Date.parse(datetime) : NaN;
+      if (Number.isFinite(parsedPublishedAt)) publishedAt = parsedPublishedAt;
       break;
     }
   }
@@ -187,6 +193,7 @@ export async function extractSingleTweet(article: Element, source: SyncSource): 
     mediaCount,
     mediaUrls,
     hasArticle,
+    ...(publishedAt === undefined ? {} : { publishedAt }),
     syncedAt: Date.now(),
     source,
   };

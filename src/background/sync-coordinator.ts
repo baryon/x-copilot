@@ -1,7 +1,7 @@
 import type { SyncSource, SyncedTweet, SyncStatus } from '@shared/types';
 import { getSyncSourceUrl } from '@shared/constants';
 import { sendTabMessage } from '@shared/messaging';
-import { getSyncStatus, setSyncStatus, mergeTweets } from './storage';
+import { getKnownTweetIds, getSyncStatus, setSyncStatus, mergeTweets } from './storage';
 
 let activeTabId: number | null = null;
 
@@ -12,6 +12,7 @@ export async function startSync(source: SyncSource, xHandle?: string): Promise<v
   // Use passed xHandle, fall back to storage
   const handle = xHandle || ((await chrome.storage.sync.get({ xHandle: '' })).xHandle as string);
   const targetUrl = getSyncSourceUrl(source, handle);
+  const knownTweetIds = await getKnownTweetIds(source);
 
   const status: SyncStatus = {
     state: 'syncing',
@@ -28,7 +29,7 @@ export async function startSync(source: SyncSource, xHandle?: string): Promise<v
 
   // Wait for page + content script to be ready before sending message
   await waitForTabReady(activeTabId);
-  await sendTabMessage(activeTabId, { type: 'BEGIN_EXTRACTION', source });
+  await sendTabMessage(activeTabId, { type: 'BEGIN_EXTRACTION', source, knownTweetIds });
 }
 
 export async function handleProgress(tweets: SyncedTweet[]): Promise<void> {

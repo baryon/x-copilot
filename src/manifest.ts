@@ -4,7 +4,7 @@ export default defineManifest({
   manifest_version: 3,
   name: 'X Copilot',
   version: '4.3.0',
-  description: 'Sync bookmarks & likes, AI-powered tweet summarization and smart replies for X (Twitter)',
+  description: 'Sync bookmarks, likes & own tweets, with AI summaries and smart replies for X (Twitter)',
   permissions: ['storage', 'unlimitedStorage', 'tabs', 'downloads'],
   host_permissions: [
     'https://x.com/*',

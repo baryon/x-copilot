@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener(
   (message: ExtensionMessage, _sender: chrome.runtime.MessageSender, sendResponse: (r: MessageResponse) => void) => {
     switch (message.type) {
       case 'BEGIN_EXTRACTION':
-        startExtraction(message.source);
+        startExtraction(message.source, message.knownTweetIds);
         sendResponse({ success: true });
         break;
 

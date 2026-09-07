@@ -101,7 +101,7 @@ export default function SettingsTab({
           className={INPUT_CLS}
         />
         <div className="text-[11px] text-x-text-muted mt-0.5">
-          同步喜欢列表时需要填写
+          同步喜欢和我的推文时需要填写
         </div>
       </div>
 
